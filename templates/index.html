@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LightMail - 轻量级邮局系统</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #f0f7ff;
+  --bg2: #ffffff;
+  --bg3: #e6f2ff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --rule: #c7e0f9;
+  --accent: #2563eb;
+  --accent2: #3b82f6;
+  --accent3: #0ea5e9;
+  --success: #10b981;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --shadow: 0 2px 12px rgba(37, 99, 235, 0.08);
+  --shadow-lg: 0 8px 30px rgba(37, 99, 235, 0.12);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+  height: 100vh;
+  overflow: hidden;
+  background-image: 
+    radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 90% 100%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
+}
+
+/* 顶部导航 */
+.topbar {
+  height: 56px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: var(--shadow);
+  position: relative;
+  z-index: 100;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 18px;
+}
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+}
+.logo-text {
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.network-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 10px;
+  background: #dcfce7;
+  color: #15803d;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.network-status .dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.user-menu:hover { background: var(--bg3); }
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+}
+.user-info { font-size: 13px; }
+.user-email { color: var(--muted); font-size: 11px; }
+
+/* 主布局 */
+.app-container {
+  display: flex;
+  height: calc(100vh - 56px);
+}
+
+/* 侧边栏 */
+.sidebar {
+  width: 220px;
+  background: var(--bg2);
+  border-right: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+}
+.compose-btn {
+  margin: 0 16px 16px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.compose-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.folder-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.folder-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+  gap: 10px;
+  font-size: 14px;
+}
+.folder-item:hover {
+  background: var(--bg3);
+}
+.folder-item.active {
+  background: #eff6ff;
+  border-left-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.folder-icon { font-size: 16px; }
+.folder-name { flex: 1; }
+.folder-badge {
+  background: var(--accent);
+  color: white;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--rule);
+  font-size: 12px;
+  color: var(--muted);
+}
+.storage-bar {
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 3px;
+  margin: 8px 0 6px;
+  overflow: hidden;
+}
+.storage-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent3));
+  border-radius: 3px;
+  width: 35%;
+}
+
+/* 邮件列表 */
+.mail-list {
+  width: 340px;
+  background: var(--bg2);
+  border-right: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+}
+.list-toolbar {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.search-box {
+  flex: 1;
+  position: relative;
+}
+.search-box input {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-box input:focus {
+  border-color: var(--accent);
+  background: white;
+}
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 14px;
+}
+.tool-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--rule);
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.tool-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.mail-items {
+  flex: 1;
+  overflow-y: auto;
+}
+.mail-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.mail-item:hover { background: var(--bg3); }
+.mail-item.active {
+  background: #eff6ff;
+  border-left: 3px solid var(--accent);
+  padding-left: 13px;
+}
+.mail-item.unread { font-weight: 600; }
+.mail-sender {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.sender-name {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.mail-date {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: normal;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.mail-subject {
+  font-size: 13px;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mail-preview {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mail-flags {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.flag-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.flag-dn42 { background: #dbeafe; color: #1d4ed8; }
+.flag-public { background: #fef3c7; color: #b45309; }
+.flag-attachment { background: #f3e8ff; color: #7c3aed; }
+
+/* 邮件详情 */
+.mail-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg2);
+}
+.detail-toolbar {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.detail-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.action-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--rule);
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.action-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.action-btn.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.action-btn.primary:hover {
+  background: var(--accent2);
+  color: white;
+}
+
+.detail-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--rule);
+}
+.detail-subject {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--ink);
+}
+.detail-meta {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.detail-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.detail-from { flex: 1; }
+.from-name { font-weight: 600; font-size: 14px; }
+.from-email { font-size: 12px; color: var(--muted); }
+.detail-date {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+}
+.detail-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.detail-body p { margin-bottom: 12px; }
+.detail-attachments {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.attachment-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--bg3);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+.attachment-info { flex: 1; }
+.attachment-name { font-size: 13px; font-weight: 500; }
+.attachment-size { font-size: 11px; color: var(--muted); }
+.attachment-dl {
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* 写邮件弹窗 */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.compose-modal {
+  width: 600px;
+  max-width: 90vw;
+  max-height: 80vh;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.compose-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.compose-title { font-weight: 600; font-size: 16px; }
+.compose-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+.compose-close:hover { opacity: 1; }
+.compose-body {
+  flex: 1;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+.compose-field {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 10px;
+}
+.compose-label {
+  width: 50px;
+  color: var(--muted);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.compose-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  background: transparent;
+}
+.compose-network {
+  display: flex;
+  gap: 6px;
+  padding: 6px 0;
+}
+.network-option {
+  padding: 4px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  background: white;
+  transition: all 0.2s;
+}
+.network-option.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.compose-textarea {
+  width: 100%;
+  min-height: 200px;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.7;
+  font-family: inherit;
+}
+.compose-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.send-btn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+.send-btn:hover { transform: translateY(-1px); }
+.compose-tools {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+/* 登录页 */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.login-card {
+  width: 400px;
+  max-width: 100%;
+  background: white;
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  padding: 40px;
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.login-logo .logo-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  font-size: 24px;
+}
+.login-logo h1 {
+  font-size: 24px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.login-logo p {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+.form-group {
+  margin-bottom: 20px;
+}
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transition: transform 0.2s;
+}
+.login-btn:hover { transform: translateY(-1px); }
+.login-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.login-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* 空状态 */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  padding: 40px;
+}
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+.empty-text { font-size: 14px; }
+
+/* 响应式 */
+@media (max-width: 1024px) {
+  .mail-list { width: 280px; }
+  .sidebar { width: 180px; }
+}
+@media (max-width: 768px) {
+  .mail-detail { display: none; }
+  .mail-list { flex: 1; }
+}
+</style>
+</head>
+<body>
+
+<!-- 登录页 (默认显示，登录后隐藏) -->
+<div id="loginPage" class="login-container">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">✉</div>
+      <h1>LightMail</h1>
+      <p>轻量级邮局系统 · DN42 双栈</p>
+    </div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label">邮箱 / 用户名</label>
+        <input type="text" class="form-input" id="loginUser" placeholder="admin@example.dn42" value="admin">
+      </div>
+      <div class="form-group">
+        <label class="form-label">密码</label>
+        <input type="password" class="form-input" id="loginPass" placeholder="请输入密码" value="admin123">
+      </div>
+      <button type="submit" class="login-btn">登录</button>
+    </form>
+    <div class="login-footer">
+      还没有账户？ <a href="#" onclick="showRegister()">立即注册</a>
+    </div>
+  </div>
+</div>
+
+<!-- 主应用 (登录后显示) -->
+<div id="appPage" style="display: none;">
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">✉</div>
+      <div class="logo-text">LightMail</div>
+    </div>
+    <div class="topbar-right">
+      <div class="network-status">
+        <span class="dot"></span>
+        <span>DN42 已连接</span>
+      </div>
+      <div class="user-menu" onclick="logout()">
+        <div class="user-avatar">A</div>
+        <div class="user-info">
+          <div>管理员</div>
+          <div class="user-email">admin@example.dn42</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容 -->
+  <div class="app-container">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+      <button class="compose-btn" onclick="openCompose()">
+        <span>✏️</span> 写邮件
+      </button>
+      <div class="folder-list">
+        <div class="folder-item active" onclick="selectFolder(this, 'INBOX')">
+          <span class="folder-icon">📥</span>
+          <span class="folder-name">收件箱</span>
+          <span class="folder-badge">12</span>
+        </div>
+        <div class="folder-item" onclick="selectFolder(this, 'Starred')">
+          <span class="folder-icon">⭐</span>
+          <span class="folder-name">星标邮件</span>
+        </div>
+        <div class="folder-item" onclick="selectFolder(this, 'Sent')">
+          <span class="folder-icon">📤</span>
+          <span class="folder-name">已发送</span>
+        </div>
+        <div class="folder-item" onclick="selectFolder(this, 'Drafts')">
+          <span class="folder-icon">📝</span>
+          <span class="folder-name">草稿箱</span>
+        </div>
+        <div class="folder-item" onclick="selectFolder(this, 'Junk')">
+          <span class="folder-icon">🚫</span>
+          <span class="folder-name">垃圾邮件</span>
+          <span class="folder-badge" style="background: var(--warn);">3</span>
+        </div>
+        <div class="folder-item" onclick="selectFolder(this, 'Trash')">
+          <span class="folder-icon">🗑️</span>
+          <span class="folder-name">垃圾箱</span>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <div>存储空间</div>
+        <div class="storage-bar">
+          <div class="storage-fill" style="width: 35%;"></div>
+        </div>
+        <div>350 MB / 1 GB 已使用</div>
+      </div>
+    </div>
+
+    <!-- 邮件列表 -->
+    <div class="mail-list">
+      <div class="list-toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="搜索邮件...">
+        </div>
+        <button class="tool-btn" title="刷新">↻</button>
+      </div>
+      <div class="mail-items" id="mailItems">
+        <!-- 邮件项由 JS 动态生成 -->
+      </div>
+    </div>
+
+    <!-- 邮件详情 -->
+    <div class="mail-detail">
+      <div class="detail-toolbar">
+        <button class="action-btn" onclick="goBack()">← 返回</button>
+        <div class="detail-actions">
+          <button class="action-btn" onclick="replyMail()">↩️ 回复</button>
+          <button class="action-btn" onclick="forwardMail()">↪️ 转发</button>
+          <button class="action-btn" style="color: var(--danger);" onclick="deleteMail()">🗑️ 删除</button>
+        </div>
+      </div>
+      <div id="detailContent">
+        <div class="empty-state">
+          <div class="empty-icon">✉️</div>
+          <div class="empty-text">选择一封邮件查看详情</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 写邮件弹窗 -->
+<div class="modal-overlay" id="composeModal">
+  <div class="compose-modal">
+    <div class="compose-header">
+      <div class="compose-title">新邮件</div>
+      <button class="compose-close" onclick="closeCompose()">×</button>
+    </div>
+    <div class="compose-body">
+      <div class="compose-field">
+        <span class="compose-label">收件人</span>
+        <input type="text" class="compose-input" id="composeTo" placeholder="输入邮箱地址...">
+      </div>
+      <div class="compose-field">
+        <span class="compose-label">主题</span>
+        <input type="text" class="compose-input" id="composeSubject" placeholder="邮件主题">
+      </div>
+      <div class="compose-network">
+        <span class="compose-label" style="width: auto; margin-right: 8px;">发送网络:</span>
+        <div class="network-option active" onclick="selectNetwork(this, 'auto')">自动选择</div>
+        <div class="network-option" onclick="selectNetwork(this, 'dn42')">🌐 DN42</div>
+        <div class="network-option" onclick="selectNetwork(this, 'public')">🌍 公网</div>
+      </div>
+      <textarea class="compose-textarea" id="composeBody" placeholder="在这里输入邮件内容..."></textarea>
+    </div>
+    <div class="compose-footer">
+      <button class="send-btn" onclick="sendMail()">
+        <span>📤</span> 发送
+      </button>
+      <div class="compose-tools">
+        <button class="tool-btn" title="添加附件">📎</button>
+        <button class="tool-btn" title="保存草稿">💾</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 状态管理
+// ============================================================
+let currentFolder = 'INBOX';
+let currentMailId = null;
+let currentNetwork = 'auto';
+let authToken = localStorage.getItem('lightmail_token') || '';
+
+// 模拟邮件数据
+const mockMails = {
+  INBOX: [
+    {
+      id: 1,
+      subject: '欢迎使用 LightMail 轻量级邮局系统',
+      sender: '系统管理员',
+      senderEmail: 'admin@example.dn42',
+      date: '10:30',
+      preview: '欢迎您使用 LightMail 轻量级邮局系统，支持 DN42 与公网双栈邮件收发...',
+      unread: true,
+      flagged: false,
+      network: 'dn42',
+      body: `<p>亲爱的用户，您好！</p>
+             <p>欢迎您使用 <strong>LightMail</strong> 轻量级邮局系统。</p>
+             <p>本系统支持以下特性：</p>
+             <ul>
+               <li>✅ DN42 网络原生支持</li>
+               <li>✅ 公网邮件可控互通</li>
+               <li>✅ 现代化 Webmail 界面</li>
+               <li>✅ 轻量高效，资源占用低</li>
+               <li>✅ 开放 API，便捷集成</li>
+             </ul>
+             <p>祝您使用愉快！</p>
+             <p>—— LightMail 团队</p>`
+    },
+    {
+      id: 2,
+      subject: 'Re: DN42 网络接入测试',
+      sender: '张三',
+      senderEmail: 'zhangsan@test.dn42',
+      date: '昨天',
+      preview: '测试成功！DN42 网络邮件收发正常，延迟很低，体验非常好...',
+      unread: true,
+      flagged: true,
+      network: 'dn42',
+      body: `<p>你好，</p>
+             <p>DN42 网络邮件收发测试成功！</p>
+             <p>延迟很低，大约 20-30ms，体验非常好。比公网邮件还要快一些。</p>
+             <p>附件是测试报告，请查收。</p>
+             <p>张三</p>`,
+      attachments: [
+        { name: 'test-report.pdf', size: '256 KB' },
+        { name: 'network-stats.csv', size: '12 KB' }
+      ]
+    },
+    {
+      id: 3,
+      subject: '项目周报 - 第 32 周',
+      sender: '李四',
+      senderEmail: 'lisi@company.com',
+      date: '8月1日',
+      preview: '本周完成了核心邮件模块的开发，进行了 DN42 网络适配测试...',
+      unread: false,
+      flagged: false,
+      network: 'public',
+      body: `<p>大家好，</p>
+             <p>以下是第 32 周的项目进度汇报：</p>
+             <p><strong>已完成工作：</strong></p>
+             <ul>
+               <li>核心邮件收发模块开发</li>
+               <li>DN42 网络适配与测试</li>
+               <li>Webmail 前端界面开发</li>
+               <li>管理后台基础功能</li>
+             </ul>
+             <p><strong>下周计划：</strong></p>
+             <ul>
+               <li>公网互通功能开发</li>
+               <li>反垃圾邮件集成</li>
+               <li>性能优化与压测</li>
+             </ul>
+             <p>如有问题请随时联系。</p>`
+    },
+    {
+      id: 4,
+      subject: '=?UTF-8?B?5L2g5aW977yM5L+h5oGv566h55CG5ZGY?=',
+      sender: '王五',
+      senderEmail: 'wangwu@other.dn42',
+      date: '7月31日',
+      preview: '看到你们做了 LightMail，想请教一下 DN42 邮件服务的搭建经验...',
+      unread: false,
+      flagged: false,
+      network: 'dn42',
+      body: `<p>你好！</p>
+             <p>我在 DN42 Wiki 上看到你们的邮件服务，做得非常棒！</p>
+             <p>我也想搭一个自己的邮件服务器，想请教几个问题：</p>
+             <ol>
+               <li>Postfix 的 DN42 适配需要改哪些配置？</li>
+               <li>你们用的是什么反垃圾方案？</li>
+               <li>用户量大概有多少？服务器配置如何？</li>
+             </ol>
+             <p>感谢！</p>
+             <p>王五</p>`
+    },
+  ],
+  Sent: [
+    {
+      id: 101,
+      subject: 'Re: 项目周报 - 第 32 周',
+      sender: '我',
+      senderEmail: 'admin@example.dn42',
+      date: '昨天',
+      preview: '周报收到了，进度不错。下周重点关注公网互通的安全性...',
+      unread: false,
+      flagged: false,
+      network: 'public',
+      body: `<p>收到，进度不错。</p>
+             <p>下周重点关注：</p>
+             <ul>
+               <li>公网互通的安全性设计</li>
+               <li>反垃圾邮件的规则配置</li>
+               <li>压力测试方案制定</li>
+             </ul>
+             <p>加油！</p>`
+    },
+  ],
+  Drafts: [],
+  Junk: [
+    {
+      id: 201,
+      subject: '恭喜您中奖了！',
+      sender: '未知发件人',
+      senderEmail: 'spam@fake.com',
+      date: '7月30日',
+      preview: '您已被选中获得一等奖，请点击链接领取...',
+      unread: true,
+      flagged: false,
+      network: 'public',
+      spam: true,
+      body: `<p>恭喜您！</p><p>您已被选中获得一等奖 100 万元！</p><p>请点击链接领取：<a href="#">fake-link.com</a></p>`
+    },
+    {
+      id: 202,
+      subject: '低价发票代开',
+      sender: '票务中心',
+      senderEmail: 'ticket@spam.cn',
+      date: '7月29日',
+      preview: '本公司常年代开各类发票，点数低，保真...',
+      unread: true,
+      flagged: false,
+      network: 'public',
+      spam: true,
+      body: `<p>代开发票，点数低，保真，可查验。</p><p>联系 QQ: 12345678</p>`
+    },
+    {
+      id: 203,
+      subject: '您的账户存在风险',
+      sender: '安全中心',
+      senderEmail: 'security@phish.com',
+      date: '7月28日',
+      preview: '您的账户检测到异常登录，请立即验证...',
+      unread: false,
+      flagged: false,
+      network: 'public',
+      spam: true,
+      body: `<p>尊敬的用户：</p><p>检测到您的账户存在异常登录，请立即点击以下链接验证身份：</p><p><a href="#">fake-verification.com</a></p>`
+    },
+  ],
+  Trash: []
+};
+
+// ============================================================
+// 登录/注册
+// ============================================================
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  login();
+});
+
+function login() {
+  const user = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  
+  // 模拟登录
+  if (user && pass) {
+    authToken = 'mock-token-' + Date.now();
+    localStorage.setItem('lightmail_token', authToken);
+    showApp();
+  }
+}
+
+function logout() {
+  authToken = '';
+  localStorage.removeItem('lightmail_token');
+  document.getElementById('appPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('appPage').style.display = 'block';
+  loadMailList();
+}
+
+function showRegister() {
+  alert('注册功能开发中...');
+}
+
+// ============================================================
+// 邮件列表
+// ============================================================
+function loadMailList() {
+  const mails = mockMails[currentFolder] || [];
+  const container = document.getElementById('mailItems');
+  
+  if (mails.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">暂无邮件</div>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = mails.map(mail => `
+    <div class="mail-item ${mail.unread ? 'unread' : ''}" onclick="openMail(${mail.id})">
+      <div class="mail-sender">
+        <span class="sender-name">${mail.sender}</span>
+        <span class="mail-date">${mail.date}</span>
+      </div>
+      <div class="mail-subject">${mail.subject}</div>
+      <div class="mail-preview">${mail.preview}</div>
+      <div class="mail-flags">
+        ${mail.network === 'dn42' ? '<span class="flag-tag flag-dn42">DN42</span>' : ''}
+        ${mail.network === 'public' ? '<span class="flag-tag flag-public">公网</span>' : ''}
+        ${mail.attachments ? '<span class="flag-tag flag-attachment">📎</span>' : ''}
+        ${mail.flagged ? '<span class="flag-tag" style="background: #fef3c7; color: #b45309;">⭐</span>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectFolder(el, folder) {
+  document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+  currentFolder = folder;
+  currentMailId = null;
+  loadMailList();
+  document.getElementById('detailContent').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">✉️</div>
+      <div class="empty-text">选择一封邮件查看详情</div>
+    </div>
+  `;
+}
+
+// ============================================================
+// 邮件详情
+// ============================================================
+function openMail(id) {
+  currentMailId = id;
+  const mails = mockMails[currentFolder] || [];
+  const mail = mails.find(m => m.id === id);
+  if (!mail) return;
+  
+  // 标记已读
+  mail.unread = false;
+  loadMailList();
+  
+  const attachmentsHtml = mail.attachments ? `
+    <div class="detail-attachments">
+      <div style="font-weight: 600; margin-bottom: 10px; font-size: 13px;">📎 附件 (${mail.attachments.length})</div>
+      ${mail.attachments.map(a => `
+        <div class="attachment-item">
+          <div class="attachment-icon">📄</div>
+          <div class="attachment-info">
+            <div class="attachment-name">${a.name}</div>
+            <div class="attachment-size">${a.size}</div>
+          </div>
+          <div class="attachment-dl">下载</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+  
+  const avatarText = mail.sender.charAt(0);
+  
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-subject">${mail.subject}</div>
+      <div class="detail-meta">
+        <div class="detail-avatar">${avatarText}</div>
+        <div class="detail-from">
+          <div class="from-name">${mail.sender}</div>
+          <div class="from-email">${mail.senderEmail}</div>
+        </div>
+        <div class="detail-date">${mail.date}</div>
+      </div>
+      <div class="detail-tags">
+        ${mail.network === 'dn42' ? '<span class="flag-tag flag-dn42">🌐 DN42 网络</span>' : ''}
+        ${mail.network === 'public' ? '<span class="flag-tag flag-public">🌍 公网</span>' : ''}
+        ${mail.spam ? '<span class="flag-tag" style="background: #fee2e2; color: #b91c1c;">⚠️ 垃圾邮件</span>' : ''}
+      </div>
+    </div>
+    <div class="detail-body">
+      ${mail.body}
+      ${attachmentsHtml}
+    </div>
+  `;
+}
+
+function goBack() {
+  // 移动端返回
+}
+
+function replyMail() {
+  openCompose();
+}
+
+function forwardMail() {
+  openCompose();
+}
+
+function deleteMail() {
+  if (confirm('确定要删除这封邮件吗？')) {
+    const mails = mockMails[currentFolder] || [];
+    const idx = mails.findIndex(m => m.id === currentMailId);
+    if (idx > -1) {
+      mails.splice(idx, 1);
+      loadMailList();
+      document.getElementById('detailContent').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">✉️</div>
+          <div class="empty-text">选择一封邮件查看详情</div>
+        </div>
+      `;
+    }
+  }
+}
+
+// ============================================================
+// 写邮件
+// ============================================================
+function openCompose() {
+  document.getElementById('composeModal').classList.add('show');
+  document.getElementById('composeTo').focus();
+}
+
+function closeCompose() {
+  document.getElementById('composeModal').classList.remove('show');
+  document.getElementById('composeTo').value = '';
+  document.getElementById('composeSubject').value = '';
+  document.getElementById('composeBody').value = '';
+}
+
+function selectNetwork(el, network) {
+  document.querySelectorAll('.network-option').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  currentNetwork = network;
+}
+
+function sendMail() {
+  const to = document.getElementById('composeTo').value;
+  const subject = document.getElementById('composeSubject').value;
+  const body = document.getElementById('composeBody').value;
+  
+  if (!to || !subject) {
+    alert('请填写收件人和主题');
+    return;
+  }
+  
+  // 模拟发送
+  const network = currentNetwork === 'auto' 
+    ? (to.includes('.dn42') ? 'dn42' : 'public') 
+    : currentNetwork;
+  
+  alert(`邮件已通过 ${network === 'dn42' ? 'DN42 网络' : '公网'} 发送！`);
+  closeCompose();
+}
+
+// 点击遮罩关闭
+document.getElementById('composeModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCompose();
+});
+
+// ============================================================
+// 初始化
+// ============================================================
+if (authToken) {
+  showApp();
+}
+</script>
+</body>
+</html>

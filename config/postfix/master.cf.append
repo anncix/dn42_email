@@ -1,0 +1,18 @@
+# Postfix master.cf - DN42 专用传输通道
+# 在默认 master.cf 基础上添加以下内容
+
+# DN42 专用 SMTP 传输通道
+# 绑定 DN42 IP 地址发送邮件
+dn42      unix  -       -       n       -       -       smtp
+ -o smtp_bind_address=172.20.xx.xx
+ -o smtp_bind_address6=fdxx:xxxx:xxxx::1
+ -o smtp_helo_name=mail.yourdomain.dn42
+ -o syslog_name=postfix-dn42
+ -o smtp_tls_CAfile=/etc/ssl/certs/dn42-root-ca.pem
+ -o smtp_tls_security_level=may
+
+# 公网专用传输通道（可选，用于双栈分离）
+public    unix  -       -       n       -       -       smtp
+ -o smtp_bind_address=你的公网IP
+ -o smtp_helo_name=mail.yourdomain.com
+ -o syslog_name=postfix-public

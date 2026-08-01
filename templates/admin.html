@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LightMail - 管理后台</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #f0f7ff;
+  --bg2: #ffffff;
+  --bg3: #e6f2ff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --rule: #c7e0f9;
+  --accent: #2563eb;
+  --accent2: #3b82f6;
+  --accent3: #0ea5e9;
+  --success: #10b981;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --shadow: 0 2px 12px rgba(37, 99, 235, 0.08);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 顶部栏 */
+.topbar {
+  height: 56px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  box-shadow: var(--shadow);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 18px;
+}
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+}
+.logo-text {
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.badge-admin {
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 布局 */
+.admin-container {
+  display: flex;
+  padding-top: 56px;
+  min-height: 100vh;
+}
+
+/* 侧边栏 */
+.sidebar {
+  width: 200px;
+  background: var(--bg2);
+  border-right: 1px solid var(--rule);
+  padding: 20px 0;
+  position: fixed;
+  top: 56px;
+  bottom: 0;
+  left: 0;
+  overflow-y: auto;
+}
+.sidebar-menu { list-style: none; }
+.sidebar-item {
+  padding: 10px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+  font-size: 14px;
+}
+.sidebar-item:hover { background: var(--bg3); }
+.sidebar-item.active {
+  background: #eff6ff;
+  border-left-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.sidebar-icon { font-size: 16px; width: 20px; text-align: center; }
+
+/* 主内容 */
+.main-content {
+  flex: 1;
+  margin-left: 200px;
+  padding: 24px;
+}
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 统计卡片 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stat-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.stat-icon {
+  float: right;
+  font-size: 24px;
+  opacity: 0.5;
+}
+
+/* 面板 */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+.panel-body { padding: 20px; }
+
+/* 按钮 */
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--rule);
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+.btn-primary:hover {
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+.btn-danger {
+  color: var(--danger);
+  border-color: #fecaca;
+}
+.btn-danger:hover {
+  background: #fef2f2;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+/* 表格 */
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--rule);
+}
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+}
+tbody tr:hover { background: var(--bg3); }
+tbody tr:last-child td { border-bottom: none; }
+
+/* 状态标签 */
+.status-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.status-active { background: #dcfce7; color: #15803d; }
+.status-inactive { background: #f1f5f9; color: #64748b; }
+.status-dn42 { background: #dbeafe; color: #1d4ed8; }
+.status-public { background: #fef3c7; color: #b45309; }
+
+/* 开关 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.switch input { display: none; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #cbd5e1;
+  transition: .3s;
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background: var(--accent);
+}
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* 设置项 */
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.setting-item:last-child { border-bottom: none; }
+.setting-info h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.setting-info p {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 网格布局 */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* 输入框 */
+.input {
+  padding: 8px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+  background: white;
+}
+.input:focus { border-color: var(--accent); }
+.input-sm { padding: 4px 8px; font-size: 12px; }
+
+/* 分页 */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 0;
+}
+.page-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--rule);
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.page-btn:hover { border-color: var(--accent); color: var(--accent); }
+.page-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">✉</div>
+    <div class="logo-text">LightMail</div>
+    <span class="badge-admin">管理后台</span>
+  </div>
+  <div class="topbar-right">
+    <span style="font-size: 13px; color: var(--muted);">管理员</span>
+    <a href="/" style="font-size: 13px; color: var(--accent); text-decoration: none;">返回 Webmail</a>
+  </div>
+</div>
+
+<div class="admin-container">
+  <!-- 侧边栏 -->
+  <div class="sidebar">
+    <ul class="sidebar-menu">
+      <li class="sidebar-item active" onclick="switchPage('dashboard', this)">
+        <span class="sidebar-icon">📊</span> 仪表盘
+      </li>
+      <li class="sidebar-item" onclick="switchPage('users', this)">
+        <span class="sidebar-icon">👥</span> 用户管理
+      </li>
+      <li class="sidebar-item" onclick="switchPage('domains', this)">
+        <span class="sidebar-icon">🌐</span> 域名管理
+      </li>
+      <li class="sidebar-item" onclick="switchPage('aliases', this)">
+        <span class="sidebar-icon">🔀</span> 别名管理
+      </li>
+      <li class="sidebar-item" onclick="switchPage('network', this)">
+        <span class="sidebar-icon">🔗</span> 网络配置
+      </li>
+      <li class="sidebar-item" onclick="switchPage('antispam', this)">
+        <span class="sidebar-icon">🛡️</span> 反垃圾邮件
+      </li>
+      <li class="sidebar-item" onclick="switchPage('logs', this)">
+        <span class="sidebar-icon">📋</span> 系统日志
+      </li>
+      <li class="sidebar-item" onclick="switchPage('settings', this)">
+        <span class="sidebar-icon">⚙️</span> 系统设置
+      </li>
+    </ul>
+  </div>
+
+  <!-- 主内容 -->
+  <div class="main-content">
+
+    <!-- 仪表盘 -->
+    <div id="page-dashboard">
+      <h1 class="page-title">📊 仪表盘</h1>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-icon">👥</span>
+          <div class="stat-value">1,234</div>
+          <div class="stat-label">总用户数</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">📧</span>
+          <div class="stat-value">3,892</div>
+          <div class="stat-label">今日邮件</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">🚫</span>
+          <div class="stat-value">156</div>
+          <div class="stat-label">垃圾邮件拦截</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">💾</span>
+          <div class="stat-value">42%</div>
+          <div class="stat-label">存储使用率</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📈 邮件趋势（近7天）</div>
+          </div>
+          <div class="panel-body">
+            <div style="height: 200px; display: flex; align-items: end; gap: 12px; padding: 20px 0;">
+              <div style="flex: 1; text-align: center;">
+                <div style="background: linear-gradient(180deg, var(--accent2), var(--accent)); height: 60%; border-radius: 6px 6px 0 0;"></div>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 8px;">周一</div>
+              </div>
+              <div style="flex: 1; text-align: center;">
+                <div style="background: linear-gradient(180deg, var(--accent2), var(--accent)); height: 75%; border-radius: 6px 6px 0 0;"></div>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 8px;">周二</div>
+              </div>
+              <div style="flex: 1; text-align: center;">
+                <div style="background: linear-gradient(180deg, var(--accent2), var(--accent)); height: 55%; border-radius: 6px 6px 0 0;"></div>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 8px;">周三</div>
+              </div>
+              <div style="flex: 1; text-align: center;">
+                <div style="background: linear-gradient(180deg, var(--accent2), var(--accent)); height: 85%; border-radius: 6px 6px 0 0;"></div>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 8px;">周四</div>
+              </div>
+              <div style="flex: 1; text-align: center;">
+                <div style="background: linear-gradient(180deg, var(--accent2), var(--accent)); height: 70%; border-radius: 6px 6px 0 0;"></div>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 8px;">周五</div>
+              </div>
+              <div style="flex: 1; text-align: center;">
+                <div style="background: linear-gradient(180deg, #94a3b8, #64748b); height: 30%; border-radius: 6px 6px 0 0;"></div>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 8px;">周六</div>
+              </div>
+              <div style="flex: 1; text-align: center;">
+                <div style="background: linear-gradient(180deg, #94a3b8, #64748b); height: 25%; border-radius: 6px 6px 0 0;"></div>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 8px;">周日</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🌐 网络状态</div>
+          </div>
+          <div class="panel-body">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>DN42 网络</h4>
+                <p>172.20.xx.xx · 5 个对等节点</p>
+              </div>
+              <span class="status-tag status-active">● 运行中</span>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>公网接入</h4>
+                <p>当前禁用，可在网络配置中开启</p>
+              </div>
+              <span class="status-tag status-inactive">已禁用</span>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>今日 DN42 邮件</h4>
+                <p>入站 256 封 · 出站 128 封</p>
+              </div>
+              <span class="status-tag status-dn42">DN42</span>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>反垃圾拦截率</h4>
+                <p>今日拦截 156 封垃圾邮件</p>
+              </div>
+              <span class="status-tag" style="background: #dcfce7; color: #15803d;">98.5%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 用户管理 -->
+    <div id="page-users" style="display: none;">
+      <h1 class="page-title">👥 用户管理
+        <button class="btn btn-primary" style="margin-left: auto; font-size: 13px;">+ 新建用户</button>
+      </h1>
+      
+      <div class="panel">
+        <div class="panel-header">
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" class="input" placeholder="搜索用户..." style="width: 200px;">
+            <select class="input">
+              <option>全部状态</option>
+              <option>已启用</option>
+              <option>已禁用</option>
+            </select>
+          </div>
+          <div style="font-size: 13px; color: var(--muted);">共 1,234 个用户</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>用户</th>
+                <th>邮箱</th>
+                <th>配额</th>
+                <th>状态</th>
+                <th>注册时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent3)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 600;">A</div>
+                    <span>管理员</span>
+                  </div>
+                </td>
+                <td>admin@example.dn42</td>
+                <td>1 GB / Unlimited</td>
+                <td><span class="status-tag status-active">管理员</span></td>
+                <td>2026-01-01</td>
+                <td>
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">禁用</button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 600;">张</div>
+                    <span>张三</span>
+                  </div>
+                </td>
+                <td>zhangsan@example.dn42</td>
+                <td>350 MB / 1 GB</td>
+                <td><span class="status-tag status-active">已启用</span></td>
+                <td>2026-06-15</td>
+                <td>
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">禁用</button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; background: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 600;">李</div>
+                    <span>李四</span>
+                  </div>
+                </td>
+                <td>lisi@example.dn42</td>
+                <td>128 MB / 1 GB</td>
+                <td><span class="status-tag status-active">已启用</span></td>
+                <td>2026-07-01</td>
+                <td>
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-danger">禁用</button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; background: #8b5cf6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 600;">王</div>
+                    <span>王五</span>
+                  </div>
+                </td>
+                <td>wangwu@example.dn42</td>
+                <td>89 MB / 500 MB</td>
+                <td><span class="status-tag status-inactive">已禁用</span></td>
+                <td>2026-05-20</td>
+                <td>
+                  <button class="btn btn-sm">编辑</button>
+                  <button class="btn btn-sm btn-primary">启用</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button class="page-btn">←</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">→</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 网络配置 -->
+    <div id="page-network" style="display: none;">
+      <h1 class="page-title">🔗 网络配置</h1>
+      
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🌐 DN42 网络</div>
+          </div>
+          <div class="panel-body">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>启用 DN42</h4>
+                <p>通过 DN42 网络收发邮件</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>DN42 IPv4</h4>
+                <p>用于发送邮件的 DN42 IP 地址</p>
+              </div>
+              <input type="text" class="input input-sm" value="172.20.xx.xx" style="width: 150px;">
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>DN42 IPv6</h4>
+                <p>用于发送邮件的 DN42 IPv6 地址</p>
+              </div>
+              <input type="text" class="input input-sm" value="fdxx:xxxx:xxxx::1" style="width: 200px;">
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>HELO 名称</h4>
+                <p>SMTP HELO/EHLO 命令使用的主机名</p>
+              </div>
+              <input type="text" class="input input-sm" value="mail.example.dn42" style="width: 200px;">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🌍 公网互通</div>
+          </div>
+          <div class="panel-body">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>启用公网入站</h4>
+                <p>允许从公网接收邮件</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>启用公网出站</h4>
+                <p>允许向公网发送邮件</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>每日发送限额</h4>
+                <p>每个用户每天公网出站邮件上限</p>
+              </div>
+              <input type="number" class="input input-sm" value="100" style="width: 100px;"> 封/天
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>白名单模式</h4>
+                <p>仅允许白名单域名互通</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">📋 转发规则</div>
+          <button class="btn btn-primary btn-sm">+ 添加规则</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>优先级</th>
+                <th>方向</th>
+                <th>匹配条件</th>
+                <th>动作</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>10</td>
+                <td><span class="status-tag status-dn42">出站</span></td>
+                <td>用户组: admins</td>
+                <td><span class="status-tag status-active">允许</span></td>
+                <td>启用</td>
+                <td><button class="btn btn-sm">编辑</button> <button class="btn btn-sm btn-danger">删除</button></td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td><span class="status-tag status-public">入站</span></td>
+                <td>发件域名: trusted-partner.com</td>
+                <td><span class="status-tag status-active">允许</span></td>
+                <td>启用</td>
+                <td><button class="btn btn-sm">编辑</button> <button class="btn btn-sm btn-danger">删除</button></td>
+              </tr>
+              <tr>
+                <td>100</td>
+                <td><span class="status-tag status-public">入站</span></td>
+                <td>全部</td>
+                <td><span class="status-tag status-inactive">拒绝</span></td>
+                <td>启用</td>
+                <td><button class="btn btn-sm">编辑</button> <button class="btn btn-sm btn-danger">删除</button></td>
+              </tr>
+              <tr>
+                <td>100</td>
+                <td><span class="status-tag status-public">出站</span></td>
+                <td>全部</td>
+                <td><span class="status-tag status-inactive">拒绝</span></td>
+                <td>启用</td>
+                <td><button class="btn btn-sm">编辑</button> <button class="btn btn-sm btn-danger">删除</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 系统设置 -->
+    <div id="page-settings" style="display: none;">
+      <h1 class="page-title">⚙️ 系统设置</h1>
+      
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📧 基本设置</div>
+          </div>
+          <div class="panel-body">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>邮件域名</h4>
+                <p>默认的邮件域名</p>
+              </div>
+              <input type="text" class="input input-sm" value="example.dn42" style="width: 180px;">
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>开放注册</h4>
+                <p>允许用户自行注册账户</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>默认配额</h4>
+                <p>新用户的默认邮箱容量</p>
+              </div>
+              <input type="number" class="input input-sm" value="1024" style="width: 100px;"> MB
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>邮件大小限制</h4>
+                <p>单封邮件最大大小</p>
+              </div>
+              <input type="number" class="input input-sm" value="50" style="width: 100px;"> MB
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🔐 安全设置</div>
+          </div>
+          <div class="panel-body">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>强制 TLS</h4>
+                <p>要求客户端使用 TLS 加密连接</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>登录失败锁定</h4>
+                <p>连续失败 5 次锁定 15 分钟</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>密码最小长度</h4>
+                <p>用户密码最少字符数</p>
+              </div>
+              <input type="number" class="input input-sm" value="8" style="width: 80px;"> 位
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>会话超时</h4>
+                <p>无操作自动登出时间</p>
+              </div>
+              <input type="number" class="input input-sm" value="24" style="width: 80px;"> 小时
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function switchPage(page, el) {
+  // 隐藏所有页面
+  document.querySelectorAll('[id^="page-"]').forEach(p => {
+    p.style.display = 'none';
+  });
+  // 显示目标页面
+  document.getElementById('page-' + page).style.display = 'block';
+  // 激活侧边栏
+  document.querySelectorAll('.sidebar-item').forEach(i => {
+    i.classList.remove('active');
+  });
+  el.classList.add('active');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # LightMail Web 应用
+  lightmail:
+    build: .
+    container_name: lightmail
+    ports:
+      - "8025:8025"
+    environment:
+      - LIGHTMAIL_DOMAIN=${LIGHTMAIL_DOMAIN:-example.dn42}
+      - LIGHTMAIL_SECRET=${LIGHTMAIL_SECRET:-change-me}
+      - LIGHTMAIL_DN42=1
+      - LIGHTMAIL_DN42_IPV4=${LIGHTMAIL_DN42_IPV4:-}
+      - LIGHTMAIL_PUBLIC=0
+      - LIGHTMAIL_SMTP_HOST=postfix
+      - LIGHTMAIL_SMTP_PORT=587
+      - LIGHTMAIL_IMAP_HOST=dovecot
+      - LIGHTMAIL_IMAP_PORT=143
+    volumes:
+      - lightmail_data:/data
+    depends_on:
+      - postfix
+      - dovecot
+    restart: unless-stopped
+
+  # Postfix MTA
+  postfix:
+    image: boky/postfix
+    container_name: lightmail-postfix
+    environment:
+      - ALLOWED_SENDER_DOMAINS=${LIGHTMAIL_DOMAIN:-example.dn42}
+      - MYHOSTNAME=mail.${LIGHTMAIL_DOMAIN:-example.dn42}
+      - MYORIGIN=${LIGHTMAIL_DOMAIN:-example.dn42}
+    ports:
+      - "25:25"
+      - "587:587"
+    volumes:
+      - postfix_spool:/var/spool/postfix
+    restart: unless-stopped
+
+  # Dovecot IMAP/POP3
+  dovecot:
+    image: dovecot/dovecot
+    container_name: lightmail-dovecot
+    ports:
+      - "143:143"
+      - "993:993"
+      - "110:110"
+      - "995:995"
+    volumes:
+      - mail_data:/var/mail
+      - dovecot_config:/etc/dovecot
+    restart: unless-stopped
+
+volumes:
+  lightmail_data:
+  postfix_spool:
+  mail_data:
+  dovecot_config:

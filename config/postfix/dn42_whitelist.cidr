@@ -1,0 +1,15 @@
+# DN42 白名单 - 绕过反垃圾检查的内网地址
+# 执行 postmap /etc/postfix/dn42_whitelist.cidr 生效
+
+# DN42 IPv4 地址段
+172.20.0.0/14       OK
+172.31.0.0/16       OK
+10.0.0.0/8          OK
+
+# 其他互联网络
+100.64.0.0/10       OK  # CGNAT / NeoNetwork
+192.168.0.0/16      OK
+
+# DN42 IPv6 地址段
+fc00::/7            OK
+fd00::/8            OK

@@ -1,0 +1,13 @@
+# 传输映射 - 指定 .dn42 域名走 DN42 专用通道
+# 执行 postmap /etc/postfix/transport 生效
+
+# DN42 域名走 DN42 通道
+.dn42               dn42:
+dn42                dn42:
+
+# 其他互联网络
+.neonetwork         dn42:
+.hack               dn42:
+.chaos              dn42:
+
+# 公网域名走默认通道（不需要配置，自动走默认）
